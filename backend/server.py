@@ -15,10 +15,9 @@ load_dotenv(ROOT_DIR / '.env')
 
 # --- SeaTable Configuration ---
 SEATABLE_API_TOKEN = "313262eba5ae256ea74921ab3067c01a98f99cd7"
-SEATABLE_API_URL = "https://cloud.seatable.io/dtable-db/api/v1/rows/"
+# Using the Base API with a dtable_uuid from user's link
+SEATABLE_API_URL = "https://cloud.seatable.io/api/v2.1/dtables/a11207c7d2504549a01d/rows/"
 SEATABLE_TABLE_NAME = "Table1"
-# It's better to get the token from environment variables in a real app
-# SEATABLE_API_TOKEN = os.environ.get("SEATABLE_API_TOKEN")
 
 
 # --- Pydantic Models ---
@@ -46,25 +45,29 @@ async def submit_contact_form(form_data: ContactForm):
         'Content-Type': 'application/json',
         'Accept': 'application/json',
     }
+    # Base API expects a 'rows' array
     payload = {
         'table_name': SEATABLE_TABLE_NAME,
-        'row': {
+        'rows': [{
             'Name': form_data.name,
             'Email': form_data.email,
             'Unternehmen': form_data.company,
             'Telefon': form_data.phone,
             'Nachricht': form_data.message,
-        }
+        }]
     }
 
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(SEATABLE_API_URL, json=payload, headers=headers)
-            response.raise_for_status()  # Raise an exception for bad status codes (4xx or 5xx)
+            response.raise_for_status()
             return {"status": "success", "message": "Form submitted successfully"}
         except httpx.HTTPStatusError as e:
-            # SeaTable might return error details in the response body
-            error_details = e.response.json()
+            try:
+                error_details = e.response.json()
+            except Exception:
+                error_details = {"error": e.response.text or "Unknown error"}
+
             logger.error(f"Error from SeaTable API: {error_details}")
             raise HTTPException(status_code=e.response.status_code, detail=error_details)
         except httpx.RequestError as e:
