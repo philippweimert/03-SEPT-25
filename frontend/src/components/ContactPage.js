@@ -30,23 +30,12 @@ const ContactPage = () => {
     e.preventDefault();
     
     try {
-      const response = await fetch('https://cloud.seatable.io/dtable-db/api/v1/rows/', {
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
-          'Authorization': 'Token 313262eba5ae256ea74921ab3067c01a98f99cd7',
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
         },
-        body: JSON.stringify({
-          'table_name': 'Table1',
-          'row': {
-            'Name': formData.name,
-            'Email': formData.email,
-            'Unternehmen': formData.company,
-            'Telefon': formData.phone,
-            'Nachricht': formData.message
-          }
-        })
+        body: JSON.stringify(formData)
       });
 
       if (response.ok) {
@@ -65,8 +54,8 @@ const ContactPage = () => {
         });
       } else {
         const errorData = await response.json();
-        console.error('Error from SeaTable:', errorData);
-        throw new Error(errorData.error_message || 'Fehler beim Senden der Nachricht an SeaTable');
+        console.error('Error from backend:', errorData);
+        throw new Error(errorData.detail || 'Fehler beim Senden der Nachricht');
       }
     } catch (error) {
       console.error('Error submitting contact form:', error);
