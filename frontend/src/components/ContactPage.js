@@ -30,10 +30,7 @@ const ContactPage = () => {
     e.preventDefault();
     
     try {
-      // Get backend URL from environment
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
-      
-      const response = await fetch(`${backendUrl}/api/contact`, {
+      const response = await fetch('/api/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -42,7 +39,6 @@ const ContactPage = () => {
       });
 
       if (response.ok) {
-        const result = await response.json();
         toast({
           title: "Nachricht gesendet!",
           description: "Vielen Dank für Ihre Anfrage. Wir melden uns schnellstmöglich bei Ihnen.",
@@ -58,6 +54,7 @@ const ContactPage = () => {
         });
       } else {
         const errorData = await response.json();
+        console.error('Error from backend:', errorData);
         throw new Error(errorData.detail || 'Fehler beim Senden der Nachricht');
       }
     } catch (error) {
